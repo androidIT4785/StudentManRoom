@@ -20,6 +20,7 @@ import com.example.studentmanroom.adapters.StudentAdapter
 import com.example.studentmanroom.controllers.DeleteStudentController
 import com.example.studentmanroom.database.StudentDatabase
 import com.example.studentmanroom.models.StudentModel
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -66,7 +67,11 @@ class HomeFragment : Fragment() {
                     val res = studentDao.insertStudent(StudentModel(name = name, id = id))
                     loadStudents()
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(requireContext(), "Đã thêm sinh viên [$res]", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(),
+                            "Đã thêm sinh viên [$res]",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         studentList.setSelection(0)
                     }
                 }
@@ -86,7 +91,11 @@ class HomeFragment : Fragment() {
                     )
                     loadStudents()
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(requireContext(), "Đã cập nhật sinh viên [$res]", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(),
+                            "Đã cập nhật sinh viên [$res]",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }
@@ -132,17 +141,18 @@ class HomeFragment : Fragment() {
                 findNavController().navigate(R.id.action_homeFragment_to_editFragment, args)
                 return true
             }
+
             R.id.action_delete -> {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    val deleted = studentDao.deleteStudent(students[pos])
-                    if (deleted > 0) {
-                        loadStudents()
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(requireContext(), "Đã xóa sinh viên", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-                return true
+                DeleteStudentController(
+                    students, studentAdapter,
+                    requireContext(),
+                    pos,
+                    studentList,
+                    studentDao,
+                    this.lifecycleScope,
+                    { loadStudents() }
+                ).deleteStudent()
+                true
             }
         }
         return super.onContextItemSelected(item)
